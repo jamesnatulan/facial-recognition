@@ -28,9 +28,9 @@ class SiameseNetwork(torch.nn.Module):
             torch.nn.Linear(160000, 1024),
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(p=0.5),
-            torch.nn.Linear(1024, 512),
+            torch.nn.Linear(1024, 256),
             torch.nn.ReLU(inplace=True),
-            torch.nn.Linear(512, 256),
+            torch.nn.Linear(256, 1),
         )
 
     def forward_once(self, x):
