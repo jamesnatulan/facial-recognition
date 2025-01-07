@@ -11,3 +11,6 @@ wheels/
 
 # Models Directory
 models/
+
+# Datasets Directory
+datasets/
