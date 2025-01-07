@@ -64,7 +64,7 @@ def train():
 
         train_loss /= len(train_dataloader)
         pbar.set_description(
-            f"Epoch {epoch}/{NUM_EPOCHS}, Train Loss: {train_loss.item():.4f}"
+            f"Epoch {epoch}/{NUM_EPOCHS}, Train Loss: {train_loss:.4f}"
         )
         writer.add_scalar(
             "Train Loss",

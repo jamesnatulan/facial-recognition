@@ -80,9 +80,9 @@ def main():
             continue
 
         # Gather similar images if there are any
-        if len(files) > 1:
+        if len(files) > 3:
             for i in range(len(files)):
-                for j in range(i + 1, len(files)):
+                for j in range(i + 1, 4):
                     # Get the path to the images
                     img1_path = os.path.join(root, files[i])
                     img2_path = os.path.join(root, files[j])
@@ -97,8 +97,8 @@ def main():
         names_copy = names.copy()
         names_copy.remove(os.path.basename(root))
 
-        # Get images from 50 other different people
-        for _ in range(50):
+        # Get images from 1 other different people
+        for _ in range(1):
             # Sample the name of the person
             root2 = np.random.choice(names_copy, 1)[0]
 
@@ -127,6 +127,6 @@ def main():
 
 
 if __name__ == "__main__":
-    crop_faces()
+    # crop_faces()
     main()
     
