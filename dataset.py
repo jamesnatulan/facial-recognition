@@ -11,12 +11,15 @@ class SiameseDataset(Dataset):
     def __init__(self, image_pairs_csv, transform=None):
         # Load the data from the csv file
         self.data = pd.read_csv(image_pairs_csv)
-        self.transform = transform if transform else {
-            transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            ])
-        }
+        if transform:
+            self.transform = transform
+        else:
+            self.transform = transforms.Compose(
+                [
+                    transforms.Resize([224, 224]),
+                    transforms.ToTensor(),
+                ]
+            )
 
     def __len__(self):
         return len(self.data)

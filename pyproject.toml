@@ -8,6 +8,7 @@ dependencies = [
     "dill>=0.3.9",
     "omegaconf>=2.3.0",
     "opencv-python>=4.10.0.84",
+    "tensorboard>=2.18.0",
     "torch>=2.5.1",
     "ultralytics>=8.3.58",
 ]

@@ -14,3 +14,6 @@ models/
 
 # Datasets Directory
 datasets/
+
+# Output Directory
+runs/
