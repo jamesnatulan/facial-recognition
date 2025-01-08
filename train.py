@@ -9,9 +9,10 @@ import os
 from tqdm import tqdm
 
 ARCH = "resnet18"
-DATASET_PATH = "datasets/lfw-yolo"
+DATASET_PATH = "datasets/lfw-deepfunneled"
 NUM_EPOCHS = 50
 BATCH_SIZE = 64
+LEARNING_RATE = 1e-5
 BASE_OUTPUT_DIR = "runs"
 EVAL_SIZE = 0.2
 EVAL_FREQ = 5
@@ -47,7 +48,7 @@ def train():
     # Initialize the model, loss function, and optimizer
     model = SiameseResNet(ARCH).cuda()
     loss_fn = ContrastiveLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=0.0005)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=0.0005)
 
      # Initialize Tensorboard writer
     log_dir = os.path.join(output_dir, "logs")

@@ -6,66 +6,66 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-import torch
-from PIL import Image
-from ultralytics import YOLO
+# import torch
+# from PIL import Image
+# from ultralytics import YOLO
 
 LFW_PATH = "datasets/lfw-deepfunneled"
-LFW_YOLO_PATH = "datasets/lfw-yolo"
 
-def crop_faces():
-    """
-    Function for cropping faces from the LFW dataset This is because the faces in
-    the LFW dataset are detected using the Viola-Jones face detector. We are using
-    YOLO for face detection so we want to make sure that the faces data are what YOLO detects.
-    """
-    output_path = LFW_YOLO_PATH
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+# def crop_faces():
+#     """
+#     Function for cropping faces from the LFW dataset This is because the faces in
+#     the LFW dataset are detected using the Viola-Jones face detector. We are using
+#     YOLO for face detection so we want to make sure that the faces data are what YOLO detects.
+#     """
+#     output_path = LFW_PATH
+#     if not os.path.exists(output_path):
+#         os.makedirs(output_path)
 
-    # Load YOLO model on the device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = YOLO(model="models/yolov8l-face.pt", task="detect").to(device)
+#     # Load YOLO model on the device
+#     device = "cuda" if torch.cuda.is_available() else "cpu"
+#     model = YOLO(model="models/yolov8l-face.pt", task="detect").to(device)
 
-    for root, _, files in tqdm(
-        os.walk(LFW_PATH),
-        total=len(os.listdir(LFW_PATH)),
-        desc="Using YOLO detect for the faces: ",
-    ):
-        if root == LFW_PATH:
-            continue
+#     for root, _, files in tqdm(
+#         os.walk(LFW_PATH),
+#         total=len(os.listdir(LFW_PATH)),
+#         desc="Using YOLO detect for the faces: ",
+#     ):
+#         if root == LFW_PATH:
+#             continue
 
-        for file in files:
-            old_path = os.path.join(root, file)
+#         for file in files:
+#             old_path = os.path.join(root, file)
 
-            # Load the image and run through YOLO
-            img = Image.open(old_path)
-            results = model(img, verbose=False)
-            for r in results:
-                boxes = r.boxes
+#             # Load the image and run through YOLO
+#             img = Image.open(old_path)
+#             results = model(img, verbose=False)
+#             for r in results:
+#                 boxes = r.boxes
 
-                for box in boxes:
-                    # bounding box
-                    x1, y1, x2, y2 = box.xyxy[0]
-                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) # convert to int values
-                    new_img = img.crop((x1, y1, x2, y2))
+#                 for box in boxes:
+#                     # bounding box
+#                     x1, y1, x2, y2 = box.xyxy[0]
+#                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) # convert to int values
+#                     new_img = img.crop((x1, y1, x2, y2))
 
-                    new_dir = os.path.join(output_path, os.path.basename(root))
-                    if not os.path.exists(new_dir):
-                        os.makedirs(new_dir)
-                    new_path = os.path.join(new_dir, file)
-                    new_img.save(new_path)
+#                     new_dir = os.path.join(output_path, os.path.basename(root))
+#                     if not os.path.exists(new_dir):
+#                         os.makedirs(new_dir)
+#                     new_path = os.path.join(new_dir, file)
+#                     new_img.save(new_path)
 
 
 def main():
     # Clear any existing output CSV files first
-    for file in os.listdir(LFW_YOLO_PATH):
-        if file.endswith(".csv"):
-            os.remove(os.path.join(LFW_YOLO_PATH, file))
+    if os.path.exists(LFW_PATH):
+        for file in os.listdir(LFW_PATH):
+            if file.endswith(".csv"):
+                os.remove(os.path.join(LFW_PATH, file))
 
     # Initialize an empty list to store the image pairs
     face_pairs = []
-    names = os.listdir(LFW_YOLO_PATH)
+    names = os.listdir(LFW_PATH)
 
     # Count the similar and dissimilar pairs
     similar_pairs = 0
@@ -73,10 +73,10 @@ def main():
 
     # Iterate through the images in the LFW dataset
     for root, _, files in tqdm(
-        os.walk(LFW_YOLO_PATH), total=len(names), desc="Getting image pairs: "
+        os.walk(LFW_PATH), total=len(names), desc="Getting image pairs: "
     ):
         # Skip the root directory
-        if root == LFW_YOLO_PATH:
+        if root == LFW_PATH:
             continue
 
         # Gather similar images if there are any
@@ -105,9 +105,9 @@ def main():
             # Get the path to the images
             img1_path = os.path.join(root, files[0])
             img2_path = os.path.join(
-                LFW_YOLO_PATH,
+                LFW_PATH,
                 root2,
-                np.random.choice(os.listdir(os.path.join(LFW_YOLO_PATH, root2)), 1)[0],
+                np.random.choice(os.listdir(os.path.join(LFW_PATH, root2)), 1)[0],
             )
             # Append the image pair to the list
             face_pairs.append((img1_path, img2_path, 0))
@@ -122,7 +122,7 @@ def main():
     df = pd.DataFrame(face_pairs, columns=["img1", "img2", "label"])
 
     # Save the DataFrame to a CSV file
-    csv_output_path = os.path.join(LFW_YOLO_PATH, "image_pairs.csv")
+    csv_output_path = os.path.join(LFW_PATH, "image_pairs.csv")
     df.to_csv(csv_output_path, index=False)
 
 
