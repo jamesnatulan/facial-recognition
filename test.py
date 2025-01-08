@@ -5,7 +5,7 @@ import torchvision.transforms as transforms
 
 def main():
     siamese_model = SiameseResNet("resnet18")
-    siamese_model.load_state_dict(torch.load("runs/run21/final.pt", weights_only=True))
+    siamese_model.load_state_dict(torch.load("runs/run24/final.pt", weights_only=True))
     siamese_model.cuda()
 
     # Faces

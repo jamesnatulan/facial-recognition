@@ -1,9 +1,10 @@
 # Contains the training loop for the siamese network
 import torch
 from torch.utils.tensorboard import SummaryWriter
-from dataset import SiameseDataset
 from model import SiameseResNet
 from loss import ContrastiveLoss
+from torchvision.datasets import LFWPairs
+import torchvision.transforms as transforms
 
 import os
 from tqdm import tqdm
@@ -26,16 +27,26 @@ def train():
     output_dir = os.path.join(BASE_OUTPUT_DIR, f"run{run_number}")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Load dataset
-    image_pairs_path = os.path.join(DATASET_PATH, "image_pairs.csv")
-    dataset = SiameseDataset(image_pairs_path)
-    
-    # Split dataset into train and eval splits
-    eval_size = int(EVAL_SIZE * len(dataset))
-    train_size = len(dataset) - eval_size
-    train_dataset, eval_dataset = torch.utils.data.random_split(
-        dataset, [train_size, eval_size]
+    # Load lfw dataset
+    transform = transforms.Compose(
+        [
+            transforms.Resize([224, 224]),
+            transforms.ToTensor(),
+        ]
     )
+    train_dataset = LFWPairs(root="datasets/lfw-deepfunneled", transform=transform, image_set="deepfunneled", download=True, split="train")
+    eval_dataset = LFWPairs(root="datasets/lfw-deepfunneled", transform=transform, image_set="deepfunneled", download=True, split="test")
+
+    # # Load dataset
+    # image_pairs_path = os.path.join(DATASET_PATH, "image_pairs.csv")
+    # dataset = SiameseDataset(image_pairs_path)
+    
+    # # Split dataset into train and eval splits
+    # eval_size = int(EVAL_SIZE * len(dataset))
+    # train_size = len(dataset) - eval_size
+    # train_dataset, eval_dataset = torch.utils.data.random_split(
+    #     dataset, [train_size, eval_size]
+    # )
 
     # Create dataloaders
     train_dataloader = torch.utils.data.DataLoader(
@@ -98,13 +109,14 @@ def train():
             eval_loss = 0
             pbar = tqdm(eval_dataloader, total=len(eval_dataloader))
             for step, batch in enumerate(pbar):
-                img1, img2, label = batch
-                img1, img2, label = img1.cuda(), img2.cuda(), label.cuda()
+                with torch.no_grad():
+                    img1, img2, label = batch
+                    img1, img2, label = img1.cuda(), img2.cuda(), label.cuda()
 
-                # Forward pass
-                output1, output2 = model(img1, img2)
-                loss_contrastive = loss_fn(output1, output2, label)
-            
+                    # Forward pass
+                    output1, output2 = model(img1, img2)
+                    loss_contrastive = loss_fn(output1, output2, label)
+                
                 eval_loss += loss_contrastive.item()
                 pbar.set_description(
                     f"Epoch {epoch}/{NUM_EPOCHS}, Validation Loss: {loss_contrastive.item():.4f}"
