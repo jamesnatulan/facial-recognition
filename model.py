@@ -20,9 +20,10 @@ class SiameseResNet(torch.nn.Module):
     Wrapper class for the ResNet model to be used in the Siamese Network
     """
 
-    def __init__(self, arch, num_classes=1024):
+    def __init__(self, arch, weights=None, num_classes=1024):
         super(SiameseResNet, self).__init__()
         self.arch = arch
+        self.weights = weights
         self.model = self._get_model(arch)
         self.model.fc = torch.nn.Linear(self.model.fc.in_features, num_classes)
 
@@ -51,7 +52,7 @@ class SiameseResNet(torch.nn.Module):
             return resnet152(weights=ResNet152_Weights.DEFAULT)
         else:
             raise ValueError(f"Invalid architecture: {arch}")
-
+        
 
 def test_ResNet():
     model = SiameseResNet("resnet50")
