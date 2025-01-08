@@ -1,43 +1,34 @@
 # Contains the siamese network model
 import torch
+from torchvision.models import (
+    resnet18,
+    resnet34,
+    resnet50,
+    resnet101,
+    resnet152,
+    ResNet18_Weights,
+    ResNet34_Weights,
+    ResNet50_Weights,
+    ResNet101_Weights,
+    ResNet152_Weights,
+)
+from torchinfo import summary
 
-class SiameseNetwork(torch.nn.Module):
-    def __init__(self):
-        super(SiameseNetwork, self).__init__()
-        # Setting up the Sequential of CNN Layers
-        self.cnn1 = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 96, kernel_size=11, stride=1),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.LocalResponseNorm(5, alpha=0.0001, beta=0.75, k=2),
-            torch.nn.MaxPool2d(3, stride=2),
-            torch.nn.Conv2d(96, 256, kernel_size=5, stride=1, padding=2),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.LocalResponseNorm(5, alpha=0.0001, beta=0.75, k=2),
-            torch.nn.MaxPool2d(3, stride=2),
-            torch.nn.Dropout(p=0.3),
-            torch.nn.Conv2d(256, 384, kernel_size=3, stride=1, padding=1),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.Conv2d(384, 256, kernel_size=3, stride=1, padding=1),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(3, stride=2),
-            torch.nn.Dropout(p=0.3),
-        )
 
-        # Defining the fully connected layers
-        self.fc1 = torch.nn.Sequential(
-            torch.nn.Linear(160000, 1024),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.Linear(1024, 256),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.Linear(256, 1),
-        )
+class SiameseResNet(torch.nn.Module):
+    """
+    Wrapper class for the ResNet model to be used in the Siamese Network
+    """
+
+    def __init__(self, arch, num_classes=1024):
+        super(SiameseResNet, self).__init__()
+        self.arch = arch
+        self.model = self._get_model(arch)
+        self.model.fc = torch.nn.Linear(self.model.fc.in_features, num_classes)
 
     def forward_once(self, x):
         # Forward pass
-        output = self.cnn1(x)
-        output = output.view(output.size()[0], -1)
-        output = self.fc1(output)
+        output = self.model(x)
         return output
 
     def forward(self, input1, input2):
@@ -46,3 +37,26 @@ class SiameseNetwork(torch.nn.Module):
         # forward pass of input 2
         output2 = self.forward_once(input2)
         return output1, output2
+
+    def _get_model(self, arch):
+        if arch == "resnet18":
+            return resnet18(weights=ResNet18_Weights.DEFAULT)
+        elif arch == "resnet34":
+            return resnet34(weights=ResNet34_Weights.DEFAULT)
+        elif arch == "resnet50":
+            return resnet50(weights=ResNet50_Weights.DEFAULT)
+        elif arch == "resnet101":
+            return resnet101(weights=ResNet101_Weights.DEFAULT)
+        elif arch == "resnet152":
+            return resnet152(weights=ResNet152_Weights.DEFAULT)
+        else:
+            raise ValueError(f"Invalid architecture: {arch}")
+
+
+def test_ResNet():
+    model = SiameseResNet("resnet50")
+    summary(model.model, input_size=(1, 3, 224, 224))
+
+
+if __name__ == "__main__":
+    test_ResNet()
