@@ -8,10 +8,10 @@ from loss import ContrastiveLoss
 import os
 from tqdm import tqdm
 
-ARCH = "resnet50"
+ARCH = "resnet18"
 DATASET_PATH = "datasets/lfw-yolo"
 NUM_EPOCHS = 50
-BATCH_SIZE = 16
+BATCH_SIZE = 64
 BASE_OUTPUT_DIR = "runs"
 EVAL_SIZE = 0.2
 EVAL_FREQ = 5
