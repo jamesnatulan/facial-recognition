@@ -4,7 +4,6 @@ from torch.utils.tensorboard import SummaryWriter
 from common import SiameseResNet, ContrastiveLoss
 from torchvision.datasets import LFWPairs
 import torchvision.transforms as transforms
-
 import os
 from tqdm import tqdm
 
@@ -12,9 +11,8 @@ ARCH = "resnet18"
 DATASET_PATH = "datasets/lfw-deepfunneled"
 NUM_EPOCHS = 50
 BATCH_SIZE = 64
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 5e-5
 BASE_OUTPUT_DIR = "runs"
-EVAL_SIZE = 0.2
 EVAL_FREQ = 5
 SAVE_FREQ = 5
 
@@ -28,32 +26,23 @@ def train():
     os.makedirs(output_dir, exist_ok=True)
 
     # Load lfw dataset
-    train_transform = transforms.Compose(
+    transform = transforms.Compose(
         [
             transforms.Resize([224, 224]),
-            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
     )
     train_dataset = LFWPairs(
         root="datasets/lfw-deepfunneled",
-        transform=train_transform,
+        transform=transform,
         image_set="deepfunneled",
         download=True,
         split="train",
     )
-
-    eval_transform = transforms.Compose(
-        [
-            transforms.Resize([224, 224]),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
     eval_dataset = LFWPairs(
         root="datasets/lfw-deepfunneled",
-        transform=eval_transform,
+        transform=transform,
         image_set="deepfunneled",
         download=True,
         split="test",

@@ -4,8 +4,8 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import LFWPairs
 
-ARCH = "resnet50"
-MODEL_PATH = "runs/run0/final.pt"
+ARCH = "resnet18"
+MODEL_PATH = "runs/run2/final.pt"
 
 
 def main():
