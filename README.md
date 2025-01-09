@@ -66,7 +66,3 @@ A quick glance shows that the model didn't really show state-of-the-art results,
 | DCMN | 0.5M |
 
 
-## Using Deepface Library
-
-To use the SOTA models, I used the [Deepface library](https://github.com/serengil/deepface) which is a lightweight Face Recognition library in Python. It also supports Facial Attribute Analysis such as age, gender, emotion, and race. 
-

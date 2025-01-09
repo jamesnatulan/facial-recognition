@@ -18,3 +18,6 @@ datasets/
 
 # Output Directory
 runs/
+
+# Embeddings and Models
+*.pt
