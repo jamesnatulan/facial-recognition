@@ -1,8 +1,7 @@
 # Contains the training loop for the siamese network
 import torch
 from torch.utils.tensorboard import SummaryWriter
-from model import SiameseResNet
-from loss import ContrastiveLoss
+from common import SiameseResNet, ContrastiveLoss
 from torchvision.datasets import LFWPairs
 import torchvision.transforms as transforms
 
@@ -19,56 +18,72 @@ EVAL_SIZE = 0.2
 EVAL_FREQ = 5
 SAVE_FREQ = 5
 
+
 # Train Function
 def train():
-    # Setup output 
+    # Setup output
     os.makedirs(BASE_OUTPUT_DIR, exist_ok=True)
     run_number = len(os.listdir(BASE_OUTPUT_DIR))
     output_dir = os.path.join(BASE_OUTPUT_DIR, f"run{run_number}")
     os.makedirs(output_dir, exist_ok=True)
 
     # Load lfw dataset
-    transform = transforms.Compose(
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize([224, 224]),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+    train_dataset = LFWPairs(
+        root="datasets/lfw-deepfunneled",
+        transform=train_transform,
+        image_set="deepfunneled",
+        download=True,
+        split="train",
+    )
+
+    eval_transform = transforms.Compose(
         [
             transforms.Resize([224, 224]),
             transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
     )
-    train_dataset = LFWPairs(root="datasets/lfw-deepfunneled", transform=transform, image_set="deepfunneled", download=True, split="train")
-    eval_dataset = LFWPairs(root="datasets/lfw-deepfunneled", transform=transform, image_set="deepfunneled", download=True, split="test")
-
-    # # Load dataset
-    # image_pairs_path = os.path.join(DATASET_PATH, "image_pairs.csv")
-    # dataset = SiameseDataset(image_pairs_path)
-    
-    # # Split dataset into train and eval splits
-    # eval_size = int(EVAL_SIZE * len(dataset))
-    # train_size = len(dataset) - eval_size
-    # train_dataset, eval_dataset = torch.utils.data.random_split(
-    #     dataset, [train_size, eval_size]
-    # )
+    eval_dataset = LFWPairs(
+        root="datasets/lfw-deepfunneled",
+        transform=eval_transform,
+        image_set="deepfunneled",
+        download=True,
+        split="test",
+    )
 
     # Create dataloaders
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size=BATCH_SIZE, shuffle=True
     )
+    print("Train Samples: ", len(train_dataset))
     eval_dataloader = torch.utils.data.DataLoader(
         eval_dataset, batch_size=BATCH_SIZE, shuffle=False
     )
+    print("Eval Samples: ", len(eval_dataset))
 
     # Initialize the model, loss function, and optimizer
     model = SiameseResNet(ARCH).cuda()
     loss_fn = ContrastiveLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=0.0005)
+    optimizer = torch.optim.Adam(
+        model.parameters(), lr=LEARNING_RATE, weight_decay=0.0005
+    )
 
-     # Initialize Tensorboard writer
+    # Initialize Tensorboard writer
     log_dir = os.path.join(output_dir, "logs")
     writer = SummaryWriter(log_dir)
-        
+
     for epoch in range(1, NUM_EPOCHS + 1):
         # Train Loop
 
-        # Set model to training mode    
+        # Set model to training mode
         model.train()
         train_loss = 0
         pbar = tqdm(train_dataloader, total=len(train_dataloader))
@@ -116,7 +131,7 @@ def train():
                     # Forward pass
                     output1, output2 = model(img1, img2)
                     loss_contrastive = loss_fn(output1, output2, label)
-                
+
                 eval_loss += loss_contrastive.item()
                 pbar.set_description(
                     f"Epoch {epoch}/{NUM_EPOCHS}, Validation Loss: {loss_contrastive.item():.4f}"
@@ -143,8 +158,7 @@ def train():
             # Save model
             save_path = os.path.join(output_dir, f"checkpoint_{epoch}.pt")
             torch.save(model.state_dict(), save_path)
-        
-    
+
     # Close the writer
     writer.close()
 
